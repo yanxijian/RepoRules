@@ -49,6 +49,12 @@ Each entry applies to the first matching glob:
   add them to `skip_globs` (for example a generated `resource.h`).
 - `check` reports violations; `fix` rewrites only files matched by this rule.
 
+Windows PowerShell 5.1 reads a BOM-less `.ps1` as ANSI, so any non-ASCII text
+(Chinese comments, messages) is decoded as mojibake and may fail to parse. Keep
+`"bom": true` for `*.ps1`; the built-in presets already do. Editors and agent
+editing tools that write plain UTF-8 silently drop the BOM, so run `fix` after
+touching such a file.
+
 ## `width`
 
 ```json

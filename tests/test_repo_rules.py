@@ -133,6 +133,19 @@ class DocumentationTest(RuleTestCase):
         self.assertIn("links", "\n".join(report.problems))
 
 
+class PresetTest(unittest.TestCase):
+    def test_powershell_scripts_require_bom(self) -> None:
+        presets = Path(__file__).resolve().parent.parent / "presets"
+        for path in sorted(presets.glob("*.json")):
+            data = json.loads(path.read_text(encoding="utf-8"))
+            for rule in data.get("encoding", []):
+                if rule.get("glob") == "*.ps1":
+                    self.assertTrue(
+                        rule.get("bom"),
+                        "%s must require a UTF-8 BOM for *.ps1" % path.name,
+                    )
+
+
 class InitTest(RuleTestCase):
     def test_init_writes_config_tool_and_templates(self) -> None:
         args = repo_rules.argparse.Namespace(

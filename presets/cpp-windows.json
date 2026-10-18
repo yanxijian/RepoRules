@@ -109,7 +109,7 @@
     },
     {
       "glob": "*.ps1",
-      "bom": false,
+      "bom": true,
       "eol": "lf"
     },
     {

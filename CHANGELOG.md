@@ -4,7 +4,12 @@ All notable changes to RepoRules are documented here.
 
 ## [Unreleased]
 
-_No unreleased changes yet._
+### Changed
+
+- `cpp-windows` / `cpp-library` presets now require a UTF-8 BOM for `*.ps1`:
+  Windows PowerShell 5.1 decodes BOM-less scripts as ANSI, so non-ASCII text
+  turns into mojibake and may fail to parse. `docs/configuration.md` documents
+  the requirement, and a preset test guards it.
 
 ## [0.1.0] - 2026-10-18
 
