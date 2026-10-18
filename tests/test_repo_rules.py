@@ -133,6 +133,40 @@ class DocumentationTest(RuleTestCase):
         self.assertIn("links", "\n".join(report.problems))
 
 
+class SyncTest(RuleTestCase):
+    def args(self, **overrides):
+        values = {
+            "root": str(self.root),
+            "dest": "scripts/repo_rules.py",
+            "source": str(Path(repo_rules.__file__).resolve()),
+            "hook": False,
+            "check": False,
+        }
+        values.update(overrides)
+        return repo_rules.argparse.Namespace(**values)
+
+    def test_sync_copies_checker_and_hook(self) -> None:
+        self.assertEqual(repo_rules.command_sync(self.args(hook=True)), 0)
+        vendored = self.root / "scripts" / "repo_rules.py"
+        self.assertEqual(vendored.read_bytes(), Path(repo_rules.__file__).read_bytes())
+        self.assertTrue((self.root / ".githooks" / "pre-commit").is_file())
+        self.assertEqual(repo_rules.command_sync(self.args(hook=True, check=True)), 0)
+
+        vendored.write_bytes(b"# stale\n")
+        self.assertEqual(repo_rules.command_sync(self.args(check=True)), 1)
+        self.assertEqual(repo_rules.command_sync(self.args()), 0)
+        self.assertEqual(vendored.read_bytes(), Path(repo_rules.__file__).read_bytes())
+
+    def test_sync_rejects_missing_target(self) -> None:
+        self.assertEqual(repo_rules.command_sync(self.args(root=str(self.root / "nope"))), 2)
+
+
+class HookTemplateTest(unittest.TestCase):
+    def test_embedded_hook_matches_template_file(self) -> None:
+        template = Path(repo_rules.__file__).resolve().parent / "templates" / "githooks" / "pre-commit"
+        self.assertEqual(template.read_text(encoding="utf-8"), repo_rules.PRECOMMIT_HOOK)
+
+
 class PresetTest(unittest.TestCase):
     def test_powershell_scripts_require_bom(self) -> None:
         presets = Path(__file__).resolve().parent.parent / "presets"

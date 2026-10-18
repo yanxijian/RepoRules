@@ -20,6 +20,7 @@ README/AGENTS.md 里的规则会腐烂：人读了、忘了，没人发现。Rep
 python repo_rules.py check --config repo-rules.json
 python repo_rules.py fix   --config repo-rules.json
 python repo_rules.py init  --preset cpp-windows
+python repo_rules.py sync  --root ../MyProject --hook
 python repo_rules.py list-presets
 ```
 
@@ -47,6 +48,18 @@ python repo_rules.py init --root ../MyProject --preset cpp-windows
 4. 把生成的 `.github/workflows/hygiene.yml` 纳入 CI。
 
 `--no-tool` 可以只生成配置和模板；`--force` 覆盖已生成文件。
+
+### 升级已嵌入的检查器
+
+`init` 会把 `repo_rules.py` 复制到目标项目，副本会随 RepoRules 升级而过期。用 `sync` 推回新版本：
+
+```bash
+python repo_rules.py sync --root ../MyProject            # 更新 scripts/repo_rules.py
+python repo_rules.py sync --root ../MyProject --hook     # 同时更新 .githooks/pre-commit
+python repo_rules.py sync --root ../MyProject --check    # 只检查：有落后副本时返回 1（适合 CI）
+```
+
+`--dest` 可改副本路径（默认 `scripts/repo_rules.py`）；`--source` 可指定其他版本作为来源。
 
 ## 内置 preset
 

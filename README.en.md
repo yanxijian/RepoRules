@@ -23,6 +23,7 @@ It does not compile, run tests, reformat with clang-format, or replace review.
 python repo_rules.py check --config repo-rules.json
 python repo_rules.py fix   --config repo-rules.json
 python repo_rules.py init  --preset cpp-windows
+python repo_rules.py sync  --root ../MyProject --hook
 python repo_rules.py list-presets
 ```
 
@@ -52,6 +53,20 @@ Then:
 
 `--no-tool` writes only the config and templates; `--force` overwrites existing
 generated files.
+
+### Update the vendored checker
+
+`init` copies `repo_rules.py` into the target project, so that copy drifts as
+RepoRules evolves. `sync` pushes the current version back:
+
+```bash
+python repo_rules.py sync --root ../MyProject            # refresh scripts/repo_rules.py
+python repo_rules.py sync --root ../MyProject --hook     # also refresh .githooks/pre-commit
+python repo_rules.py sync --root ../MyProject --check    # verify only; exit 1 when stale (CI-friendly)
+```
+
+`--dest` changes the copy path (default `scripts/repo_rules.py`); `--source`
+picks a different checker as the source of truth.
 
 ## Built-in presets
 

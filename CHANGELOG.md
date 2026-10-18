@@ -4,6 +4,12 @@ All notable changes to RepoRules are documented here.
 
 ## [Unreleased]
 
+### Added
+
+- `sync` command: refresh the vendored `scripts/repo_rules.py` (and
+  `.githooks/pre-commit` with `--hook`) in a project that ran `init`;
+  `--check` exits 1 when a copy is stale, so CI can detect drift.
+
 ### Changed
 
 - `cpp-windows` / `cpp-library` presets now require a UTF-8 BOM for `*.ps1`:
