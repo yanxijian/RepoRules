@@ -4,7 +4,13 @@ All notable changes to RepoRules are documented here.
 
 ## [Unreleased]
 
-_No unreleased changes yet._
+### Added
+
+- `docs/ci-scheduling.md`: how to scope a build workflow so documentation-only
+  changes do not start the compile/test pipeline. Covers the positive `paths:`
+  allowlist (recommended), the `paths-ignore` alternative and its test-fixture
+  trap, the split of duties with `hygiene.yml`, the branch-protection caveat,
+  and a job-level gate for the case where a required check must stay.
 
 ## [0.2.0] - 2026-10-19
 

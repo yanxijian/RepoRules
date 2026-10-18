@@ -102,6 +102,8 @@ pre-commit 使用 `check --staged`，只检查暂存文件；CI 模板使用全�
 两者都调用目标项目里的 `scripts/repo_rules.py`，不依赖全局安装。
 
 CI 模板是独立的 `hygiene.yml`，与构建 CI 分开：文档/配置改动也要跑仓库规则。
+反向的规则同样成立——构建 CI 只应在构建输入变化时启动，纯文档改动不该拉起完整编译，
+见 [ci-scheduling.md](ci-scheduling.md)。
 
 ## 6. 逐步收紧
 

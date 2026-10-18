@@ -85,7 +85,8 @@ preset 只是起点。版本号和路径因项目而异，复制后按项目修�
 | Markdown | `markdown` | 相对链接可解析；双语文件互相链接 |
 | `.gitattributes` | `gitattributes` | 必需的正则模式，确保行尾标准被声明 |
 
-完整配置字段与示例见 [docs/configuration.md](docs/configuration.md)；迁移步骤见 [docs/adaptation.md](docs/adaptation.md)。
+完整配置字段与示例见 [docs/configuration.md](docs/configuration.md)；迁移步骤见 [docs/adaptation.md](docs/adaptation.md)；
+CI 触发范围（只改文档时不跑编译流水线）见 [docs/ci-scheduling.md](docs/ci-scheduling.md)。
 
 ## 设计边界
 

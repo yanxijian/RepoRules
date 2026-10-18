@@ -119,6 +119,7 @@
     "presets/python-tool.json",
     "docs/configuration.md",
     "docs/adaptation.md",
+    "docs/ci-scheduling.md",
     "templates/githooks/pre-commit",
     "templates/github/workflows/hygiene.yml",
     "tests/test_repo_rules.py"

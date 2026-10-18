@@ -94,7 +94,9 @@ project-specific; copy and edit.
 | `.gitattributes` | `gitattributes` | Required regex patterns so the EOL policy is declared |
 
 See [docs/configuration.md](docs/configuration.md) for the full schema and
-examples, and [docs/adaptation.md](docs/adaptation.md) for migration steps.
+examples, [docs/adaptation.md](docs/adaptation.md) for migration steps, and
+[docs/ci-scheduling.md](docs/ci-scheduling.md) for CI trigger scoping
+(documentation-only changes must not start the build pipeline).
 
 ## Scope
 
