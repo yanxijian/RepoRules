@@ -1,6 +1,6 @@
 # RepoRules
 
-**简体中文** | [English](README.en.md)
+[English](README.en.md) · **简体中文**
 
 把仓库里“靠人记住”的机械规范变成可执行检查：编码与行尾、列宽、禁止模式、头文件约定、版本同步、CHANGELOG、必需文件、Markdown 链接和中英文互链。
 

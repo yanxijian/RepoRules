@@ -1,6 +1,6 @@
 # RepoRules
 
-**English** | [简体中文](README.md)
+**English** · [简体中文](README.md)
 
 Turn the mechanical parts of a repository's rules into executable checks:
 encoding and line endings, column width, forbidden patterns, header conventions,
