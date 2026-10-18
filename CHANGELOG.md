@@ -12,6 +12,13 @@ All notable changes to RepoRules are documented here.
   trap, the split of duties with `hygiene.yml`, the branch-protection caveat,
   and a job-level gate for the case where a required check must stay.
 
+### Fixed
+
+- `skip_globs` now also silences Markdown link checking. The per-file rules
+  honoured it, but `_check_markdown()` received the unfiltered file list, so a
+  document linking into a submodule (absent on a CI checkout) failed even when
+  listed in `skip_globs`.
+
 ## [0.2.0] - 2026-10-19
 
 ### Added

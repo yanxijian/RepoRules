@@ -29,7 +29,9 @@ Directories are skipped before any rule runs.
 
 `skip_globs` uses shell-style matching against the repository-relative POSIX
 path. A pattern without `/` matches a basename at any depth; a pattern with `/`
-is rooted at the repository root.
+is rooted at the repository root. A skipped file is excluded from every rule,
+including Markdown link checking — useful for documents that link into a
+submodule which a CI checkout does not materialize.
 
 ## `encoding`
 

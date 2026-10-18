@@ -132,6 +132,17 @@ class DocumentationTest(RuleTestCase):
         report = repo_rules.Checker(config).run(sorted(self.root.glob("*.md")))
         self.assertIn("links", "\n".join(report.problems))
 
+    def test_skip_globs_silences_markdown_links(self) -> None:
+        # A file that points into a submodule cannot resolve on a CI checkout
+        # without submodules; skip_globs must silence the link check for it.
+        self.write("docs/generated.md", b"# Generated\n\n[pdfium](../pdfium/docs/x.md)\n")
+        self.write("README.md", b"# Demo\n\n[missing](NOPE.md)\n")
+        config = self.config(markdown={"globs": ["*.md"], "check_links": True}, skip_globs=["docs/generated.md"])
+        files = sorted(self.root.rglob("*.md"))
+        problems = "\n".join(repo_rules.Checker(config).run(files).problems)
+        self.assertNotIn("docs/generated.md", problems)
+        self.assertIn("README.md", problems)
+
 
 class SyncTest(RuleTestCase):
     def args(self, **overrides):
