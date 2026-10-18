@@ -1,0 +1,145 @@
+{
+  "version": 1,
+  "skip_dirs": [
+    ".git",
+    "build",
+    "dist",
+    ".venv",
+    "__pycache__"
+  ],
+  "skip_prefixes": [
+    "build-",
+    "cmake-build"
+  ],
+  "skip_globs": [],
+  "encoding": [
+    {
+      "glob": "*.py",
+      "bom": false,
+      "eol": "lf"
+    },
+    {
+      "glob": "*.md",
+      "bom": false,
+      "eol": "lf"
+    },
+    {
+      "glob": "*.json",
+      "bom": false,
+      "eol": "lf"
+    },
+    {
+      "glob": "*.toml",
+      "bom": false,
+      "eol": "lf"
+    },
+    {
+      "glob": "*.yml",
+      "bom": false,
+      "eol": "lf"
+    },
+    {
+      "glob": "*.yaml",
+      "bom": false,
+      "eol": "lf"
+    },
+    {
+      "glob": ".gitignore",
+      "bom": false,
+      "eol": "lf"
+    },
+    {
+      "glob": ".gitattributes",
+      "bom": false,
+      "eol": "lf"
+    },
+    {
+      "glob": ".editorconfig",
+      "bom": false,
+      "eol": "lf"
+    },
+    {
+      "glob": ".githooks/pre-commit",
+      "bom": false,
+      "eol": "lf"
+    },
+    {
+      "glob": "templates/githooks/pre-commit",
+      "bom": false,
+      "eol": "lf"
+    },
+    {
+      "glob": "LICENSE",
+      "bom": false,
+      "eol": "lf"
+    }
+  ],
+  "width": {
+    "globs": [
+      "*.py"
+    ],
+    "limit": 140,
+    "tab_width": 4
+  },
+  "forbidden": [],
+  "headers": {
+    "globs": [],
+    "first_line": "#pragma once",
+    "forbid_namespace_using": true
+  },
+  "versions": [
+    {
+      "id": "repo-rules-version",
+      "sources": [
+        {
+          "path": "pyproject.toml",
+          "pattern": "version\\s*=\\s*\"(\\d+)\\.(\\d+)\\.(\\d+)\""
+        },
+        {
+          "path": "repo_rules.py",
+          "pattern": "__version__\\s*=\\s*\"(\\d+)\\.(\\d+)\\.(\\d+)\""
+        }
+      ]
+    }
+  ],
+  "changelog": {
+    "path": "CHANGELOG.md",
+    "require": "## [Unreleased]",
+    "link_definitions": true
+  },
+  "required_files": [
+    "LICENSE",
+    "README.md",
+    "README.en.md",
+    "CHANGELOG.md",
+    "repo_rules.py",
+    "repo-rules.json",
+    "presets/cpp-windows.json",
+    "presets/cpp-library.json",
+    "presets/python-tool.json",
+    "docs/configuration.md",
+    "docs/adaptation.md",
+    "templates/githooks/pre-commit",
+    "templates/github/workflows/hygiene.yml",
+    "tests/test_repo_rules.py"
+  ],
+  "markdown": {
+    "globs": [
+      "*.md"
+    ],
+    "check_links": true,
+    "bilingual_pairs": [
+      [
+        "README.md",
+        "README.en.md"
+      ]
+    ]
+  },
+  "gitattributes": {
+    "path": ".gitattributes",
+    "required_patterns": [
+      "\\* text=auto",
+      "\\*\\.py\\s+text eol=lf"
+    ]
+  }
+}

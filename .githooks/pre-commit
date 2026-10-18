@@ -1,0 +1,17 @@
+#!/bin/sh
+# Self-check hook for the RepoRules repository.
+# Install once per clone:
+#   git config core.hooksPath .githooks
+
+set -e
+root=$(git rev-parse --show-toplevel)
+cd "$root"
+
+for candidate in python3 python py; do
+	if command -v "$candidate" >/dev/null 2>&1; then
+		exec "$candidate" repo_rules.py check --config repo-rules.json --staged
+	fi
+done
+
+echo "pre-commit: no Python interpreter found; skipping repository rules" >&2
+exit 0
