@@ -10,6 +10,9 @@ All notable changes to RepoRules are documented here.
   Windows PowerShell 5.1 decodes BOM-less scripts as ANSI, so non-ASCII text
   turns into mojibake and may fail to parse. `docs/configuration.md` documents
   the requirement, and a preset test guards it.
+- Pre-commit hook now probes each Python candidate (`python3`, `python`, `py`)
+  with `-c 'import sys'` before using it, so the Windows Store `python3` stub
+  no longer breaks commits.
 
 ## [0.1.0] - 2026-10-18
 

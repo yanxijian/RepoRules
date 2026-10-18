@@ -11,7 +11,7 @@ root=$(git rev-parse --show-toplevel)
 cd "$root"
 
 for candidate in python3 python py; do
-	if command -v "$candidate" >/dev/null 2>&1; then
+	if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c 'import sys' >/dev/null 2>&1; then
 		exec "$candidate" scripts/repo_rules.py check --config repo-rules.json --staged
 	fi
 done
