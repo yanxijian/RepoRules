@@ -4,11 +4,17 @@ All notable changes to RepoRules are documented here.
 
 ## [Unreleased]
 
+_No unreleased changes yet._
+
+## [0.2.0] - 2026-10-19
+
 ### Added
 
 - `sync` command: refresh the vendored `scripts/repo_rules.py` (and
   `.githooks/pre-commit` with `--hook`) in a project that ran `init`;
   `--check` exits 1 when a copy is stale, so CI can detect drift.
+- The pre-commit hook body is embedded in `repo_rules.py`, so `sync --hook`
+  also works from a vendored copy where `templates/` does not exist.
 
 ### Changed
 
@@ -32,5 +38,6 @@ All notable changes to RepoRules are documented here.
 - Pre-commit hook and hygiene workflow templates.
 - Unit tests and self-checking configuration.
 
-[Unreleased]: https://github.com/yanxijian/RepoRules/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/yanxijian/RepoRules/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/yanxijian/RepoRules/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/yanxijian/RepoRules/releases/tag/v0.1.0
