@@ -144,6 +144,83 @@ class DocumentationTest(RuleTestCase):
         self.assertIn("README.md", problems)
 
 
+class LanguagesTest(RuleTestCase):
+    """markdown.languages: one document set, N ordered language variants.
+
+    Labels are plain ASCII here because the checker only looks at link targets
+    and at which entry is the bold current language.
+    """
+
+    def languages(self, **extra):
+        block = {"default": "README.md", "variants": ["README.zh-CN.md", "README.ja.md"]}
+        block.update(extra)
+        return self.config(markdown={"globs": ["*.md"], "check_links": True, "languages": block})
+
+    def files(self):
+        return sorted(self.root.glob("*.md"))
+
+    def switch(self, current, *others):
+        return ("# Demo\n\n**%s** \xc2\xb7 " % current) + " \xc2\xb7 ".join(
+            "[%s](%s)" % (name, name) for name in others
+        ) + "\n"
+
+    def test_complete_set_with_ordered_switch_lines(self):
+        self.write("README.md", self.switch("English", "README.zh-CN.md", "README.ja.md").encode())
+        self.write("README.zh-CN.md", self.switch("Chinese", "README.md", "README.ja.md").encode())
+        self.write("README.ja.md", self.switch("Japanese", "README.md", "README.zh-CN.md").encode())
+        self.assertEqual(repo_rules.Checker(self.languages()).run(self.files()).problems, [])
+
+    def test_missing_variant_is_a_violation(self):
+        self.write("README.md", self.switch("English", "README.zh-CN.md", "README.ja.md").encode())
+        self.write("README.zh-CN.md", self.switch("Chinese", "README.md", "README.ja.md").encode())
+        problems = "\n".join(repo_rules.Checker(self.languages()).run(self.files()).problems)
+        self.assertIn("missing language variant", problems)
+        self.assertIn("README.ja.md", problems)
+
+    def test_wrong_order_is_a_violation(self):
+        # ja listed before zh-CN, while the config says zh-CN then ja
+        self.write("README.md", self.switch("English", "README.ja.md", "README.zh-CN.md").encode())
+        self.write("README.zh-CN.md", self.switch("Chinese", "README.md", "README.ja.md").encode())
+        self.write("README.ja.md", self.switch("Japanese", "README.md", "README.zh-CN.md").encode())
+        problems = "\n".join(repo_rules.Checker(self.languages()).run(self.files()).problems)
+        self.assertIn("switch line lists", problems)
+
+    def test_current_language_must_be_first_and_bold(self):
+        self.write("README.md", ("# Demo\n\n[ZH](README.zh-CN.md) \xc2\xb7 [JA](README.ja.md)\n").encode())
+        problems = "\n".join(repo_rules.Checker(self.languages()).run(self.files()).problems)
+        self.assertIn("in bold", problems)
+
+    def test_missing_switch_line_is_a_violation(self):
+        self.write("README.md", b"# Demo\n\n## Usage\n")
+        problems = "\n".join(repo_rules.Checker(self.languages()).run(self.files()).problems)
+        self.assertIn("no language switch line", problems)
+
+    def test_switch_line_ignores_leading_comment(self):
+        body = b"<!-- translated-from: README.md sha256:0123456789ab -->\n\n" + self.switch(
+            "Chinese", "README.md", "README.ja.md"
+        ).encode()
+        self.write("README.md", self.switch("English", "README.zh-CN.md", "README.ja.md").encode())
+        self.write("README.zh-CN.md", body)
+        self.write("README.ja.md", self.switch("Japanese", "README.md", "README.zh-CN.md").encode())
+        self.assertEqual(repo_rules.Checker(self.languages()).run(self.files()).problems, [])
+
+    def test_default_must_not_be_a_variant(self):
+        data = {
+            "version": 1,
+            "markdown": {"globs": ["*.md"], "languages": {"default": "README.md", "variants": ["README.md"]}},
+        }
+        with self.assertRaises(repo_rules.ConfigError):
+            repo_rules.RuleConfig(self.root, data)
+
+    def test_switch_line_can_be_disabled(self):
+        self.write("README.md", b"# Demo\n\n## Usage\n")
+        config = self.languages(switch_line=False)
+        self.write("README.zh-CN.md", b"# Demo\n")
+        self.write("README.ja.md", b"# Demo\n")
+        self.assertEqual(repo_rules.Checker(config).run(self.files()).problems, [])
+
+
+
 class SyncTest(RuleTestCase):
     def args(self, **overrides):
         values = {

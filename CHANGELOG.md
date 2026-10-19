@@ -6,6 +6,11 @@ All notable changes to RepoRules are documented here.
 
 ### Added
 
+- `markdown.languages`: one document set with N ordered language variants.
+  Checks that every variant exists, that each file's language switch line starts
+  with the current language in bold, and that the line links to the other
+  variants in the configured order. `bilingual_pairs` only proved two files knew
+  about each other; this pins completeness and order for sets larger than two.
 - `markdown.translations`: optional checks for a maintained translated set -
   the `<!-- translated-from: <file> sha256:<12> -->` marker and staleness
   (report-only by default), CJK line wrapping (`cjk_wrap`), and "a translation

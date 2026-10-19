@@ -141,6 +141,45 @@ Relative links are resolved from the document's directory; external links,
 fragments and root-absolute links are skipped. For each bilingual pair, each
 file must contain the other file's basename (usually in the language switcher).
 
+### `markdown.languages` (optional)
+
+For repositories that ship one document in many languages. `bilingual_pairs`
+only proves two files know about each other; this block also pins the **order**
+and requires every variant to exist.
+
+```json
+"markdown": {
+  "languages": {
+    "default": "README.md",
+    "variants": [
+      "README.zh-CN.md",
+      "README.ja.md",
+      "README.ko.md"
+    ],
+    "switch_line": true
+  }
+}
+```
+
+| Key | Meaning |
+|---|---|
+| `default` | The file served when nobody asked for a language. Defaults to `README.md`. It must not also appear in `variants`. |
+| `variants` | Ordered list of the other language files. Order is the contract: switch lines must follow it. |
+| `switch_line` | Check the language switcher (default `true`). Set to `false` on a repo that only needs the completeness check. |
+
+The switch line is the first significant line below the `H1`. It must:
+
+1. start with the current language in bold (`**English**`), and
+2. link to every other variant, in the configured order.
+
+HTML comments (`<!-- translated-from: ... -->`) before the title are ignored, so
+a provenance marker does not shift the line. A section heading directly under the
+title means there is no switch line and the check fails.
+
+`markdown.languages` and `markdown.translations` are complementary: this block
+checks presence, order and the switcher; `translations` checks the provenance
+marker and whether a translation went stale.
+
 ### `markdown.translations` (optional)
 
 Three checks for repositories that maintain a translated set of documents. Omit
