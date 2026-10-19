@@ -6,6 +6,12 @@ All notable changes to RepoRules are documented here.
 
 ### Added
 
+- `markdown.languages.stale`: `off` (default) / `warning` / `error`. When on, every
+  language variant must carry `<!-- translated-from: <default> sha256:<12> -->`,
+  and a changed default file reports `language-stale` with both hashes. The
+  switch-line check proves the variants know about each other; this proves they
+  still say the same thing. `warning` keeps the build green on purpose (translating
+  is real work); `error` is for repos that translate in the same change.
 - `markdown.languages`: one document set with N ordered language variants.
   Checks that every variant exists, that each file's language switch line starts
   with the current language in bold, and that the line links to the other

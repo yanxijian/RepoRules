@@ -166,11 +166,49 @@ and requires every variant to exist.
 | `default` | The file served when nobody asked for a language. Defaults to `README.md`. It must not also appear in `variants`. |
 | `variants` | Ordered list of the other language files. Order is the contract: switch lines must follow it. |
 | `switch_line` | Check the language switcher (default `true`). Set to `false` on a repo that only needs the completeness check. |
+| `stale` | `off` (default), `warning` or `error`. On, every variant must carry `<!-- translated-from: <default> sha256:<12> -->`; a changed default reports `language-stale`. |
 
 The switch line is the first significant line below the `H1`. It must:
 
 1. start with the current language in bold (`**English**`), and
 2. link to every other variant, in the configured order.
+
+#### Keeping the variants honest (`stale`)
+
+`switch_line` proves the four files know about each other; it says nothing about
+whether they still say the same thing. Set `stale` to make that visible:
+
+```json
+"languages": {
+  "default": "README.md",
+  "variants": ["README.zh-CN.md", "README.ja.md", "README.ko.md"],
+  "switch_line": true,
+  "stale": "warning"
+}
+```
+
+Each variant records the hash of the file it was translated from, at the top:
+
+```markdown
+<!-- translated-from: README.md sha256:5765763fdfd8 -->
+```
+
+When the default file changes, its hash changes and every variant reports
+`language-stale` with both hashes. A missing marker is an error, because opting
+into `stale` means every variant is tracked.
+
+- `warning` (the recommended setting) prints the line and keeps the build green:
+  translating is real work and must not block a merge, but it must not go
+  unnoticed either.
+- `error` fails the build. Use it only where translations are updated in the same
+  change.
+- The marker is a content hash, not a commit id, so a rebase does not invalidate
+  every translation.
+
+The old `markdown.translations` block is a different tool: it tracks *pairs of
+documents* and can additionally check CJK line wrapping and cross-language links.
+`markdown.languages.stale` tracks *one document in N languages*, which is the
+README case.
 
 HTML comments (`<!-- translated-from: ... -->`) before the title are ignored, so
 a provenance marker does not shift the line. A section heading directly under the

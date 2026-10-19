@@ -4,6 +4,7 @@
 from __future__ import annotations
 
 import json
+import hashlib
 import sys
 import tempfile
 import unittest
@@ -218,6 +219,65 @@ class LanguagesTest(RuleTestCase):
         self.write("README.zh-CN.md", b"# Demo\n")
         self.write("README.ja.md", b"# Demo\n")
         self.assertEqual(repo_rules.Checker(config).run(self.files()).problems, [])
+
+    # --- stale: each variant records the default file's hash -----------------
+
+    def marker(self, digest: str) -> bytes:
+        return ("<!-- translated-from: README.md sha256:%s -->\n\n" % digest).encode()
+
+    def stale_set(self) -> str:
+        readme = self.switch("English", "README.zh-CN.md", "README.ja.md").encode()
+        self.write("README.md", readme)
+        digest = hashlib.sha256(readme).hexdigest()[:12]
+        for name, current, others in (
+            ("README.zh-CN.md", "Chinese", ("README.md", "README.ja.md")),
+            ("README.ja.md", "Japanese", ("README.md", "README.zh-CN.md")),
+        ):
+            self.write(name, self.marker(digest) + self.switch(current, *others).encode())
+        return digest
+
+    def test_stale_markers_matching_the_source_are_clean(self):
+        self.stale_set()
+        report = repo_rules.Checker(self.languages(stale="warning")).run(self.files())
+        self.assertEqual(report.problems, [])
+        self.assertEqual(report.warnings, [])
+
+    def test_stale_marker_missing_is_a_violation(self):
+        self.stale_set()
+        self.write("README.ja.md", self.switch("Japanese", "README.md", "README.zh-CN.md").encode())
+        problems = "\n".join(repo_rules.Checker(self.languages(stale="warning")).run(self.files()).problems)
+        self.assertIn("no `<!-- translated-from: README.md sha256:... -->` marker", problems)
+
+    def test_changed_source_warns_but_stays_green(self):
+        self.stale_set()
+        self.write("README.md", self.switch("English", "README.zh-CN.md", "README.ja.md").encode() + b"\nExtra line.\n")
+        report = repo_rules.Checker(self.languages(stale="warning")).run(self.files())
+        self.assertEqual(report.problems, [])
+        self.assertTrue(any("language-stale" in warning for warning in report.warnings))
+
+    def test_changed_source_fails_when_stale_is_error(self):
+        self.stale_set()
+        self.write("README.md", self.switch("English", "README.zh-CN.md", "README.ja.md").encode() + b"\nExtra line.\n")
+        problems = "\n".join(repo_rules.Checker(self.languages(stale="error")).run(self.files()).problems)
+        self.assertIn("[language-stale]", problems)
+
+    def test_stale_off_ignores_markers(self):
+        self.stale_set()
+        self.write("README.md", self.switch("English", "README.zh-CN.md", "README.ja.md").encode() + b"\nExtra line.\n")
+        report = repo_rules.Checker(self.languages(stale="off")).run(self.files())
+        self.assertEqual(report.problems, [])
+        self.assertEqual(report.warnings, [])
+
+    def test_stale_must_be_a_known_mode(self):
+        data = {
+            "version": 1,
+            "markdown": {
+                "globs": ["*.md"],
+                "languages": {"default": "README.md", "variants": ["README.zh-CN.md"], "stale": "sometimes"},
+            },
+        }
+        with self.assertRaises(repo_rules.ConfigError):
+            repo_rules.RuleConfig(self.root, data)
 
 
 
