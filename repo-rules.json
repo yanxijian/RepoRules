@@ -138,7 +138,8 @@
         "README.ja.md",
         "README.ko.md"
       ],
-      "switch_line": true
+      "switch_line": true,
+      "stale": "warning"
     }
   },
   "gitattributes": {

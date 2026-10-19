@@ -2,6 +2,8 @@
 
 **简体中文** · [English](README.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
 
+<!-- translated-from: README.md sha256:b4c8c23d52bb -->
+
 把仓库里“靠人记住”的机械规范变成可执行检查：编码与行尾、列宽、禁止模式、头文件约定、版本同步、CHANGELOG、必需文件、Markdown 链接，以及多语言文档集。
 
 Python 3.9+，只用标准库，无第三方依赖。
