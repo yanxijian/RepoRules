@@ -141,6 +141,43 @@ Relative links are resolved from the document's directory; external links,
 fragments and root-absolute links are skipped. For each bilingual pair, each
 file must contain the other file's basename (usually in the language switcher).
 
+### `markdown.translations` (optional)
+
+Three checks for repositories that maintain a translated set of documents. Omit
+the block and nothing changes.
+
+```json
+"markdown": {
+  "translations": {
+    "pairs": [["README.md", "README.zh-CN.md"]],
+    "suffix": ".zh-CN.md",
+    "marker": "translated-from:",
+    "stale": "warning",
+    "cjk_wrap": true,
+    "keep_language": true
+  }
+}
+```
+
+| Key | Meaning |
+|---|---|
+| `pairs` | `[source, translation]` pairs. Both files must exist and the translation must carry the marker. |
+| `suffix` | Suffix used to derive a sibling translation when checking links; default `.zh-CN.md`. |
+| `marker` | Text that identifies the provenance comment, default `translated-from:`. |
+| `stale` | `warning` (default) prints a `warn` line and exits 0; `error` fails; `off` skips the comparison. |
+| `cjk_wrap` | Flag a line break between two CJK characters (Markdown renders it as a space). |
+| `keep_language` | A translation must link to its translated siblings instead of the source-language files. |
+
+The marker records the source revision the translation came from:
+
+```markdown
+<!-- translated-from: README.md sha256:1e739ff575ba -->
+```
+
+`sha256:` is the first 12 hex digits of the source file's SHA-256. Refreshing a
+translation means updating this value by hand - the checker never edits
+documents, it only reports drift.
+
 ## `gitattributes`
 
 ```json

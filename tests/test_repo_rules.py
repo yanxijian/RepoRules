@@ -191,6 +191,91 @@ class PresetTest(unittest.TestCase):
                     )
 
 
+class TranslationTest(RuleTestCase):
+    """markdown.translations: marker staleness, CJK wrapping, language links."""
+
+    def translations(self, **extra):
+        block = {"pairs": [["README.md", "README.zh-CN.md"]]}
+        block.update(extra)
+        return repo_rules.RuleConfig(
+            self.root,
+            {
+                "version": 1,
+                "markdown": {"globs": ["*.md"], "check_links": True, "bilingual_pairs": [], "translations": block},
+            },
+        )
+
+    def test_marker_matches_then_reports_stale(self) -> None:
+        source = b"# Title\n\nEnglish body.\n"
+        digest = repo_rules.hashlib.sha256(source).hexdigest()[:12]
+        self.write("README.md", source)
+        self.write(
+            "README.zh-CN.md",
+            ("# \u6807\u9898\n\n<!-- translated-from: README.md sha256:%s -->\n" % digest).encode("utf-8"),
+        )
+        report = repo_rules.Checker(self.translations()).run([])
+        self.assertEqual(report.problems, [])
+        self.assertEqual(report.warnings, [])
+
+        self.write("README.md", b"# Title\n\nEnglish body changed.\n")
+        report = repo_rules.Checker(self.translations()).run([])
+        self.assertEqual(report.problems, [])
+        self.assertEqual(len(report.warnings), 1)
+        self.assertIn("translation-stale", report.warnings[0])
+
+    def test_missing_marker_is_a_violation(self) -> None:
+        self.write("README.md", b"# Title\n")
+        self.write("README.zh-CN.md", "# \u6807\u9898\n".encode("utf-8"))
+        report = repo_rules.Checker(self.translations()).run([])
+        self.assertIn("translation", "\n".join(report.problems))
+
+    def test_stale_can_be_promoted_to_error(self) -> None:
+        self.write("README.md", b"# Title\n")
+        self.write("README.zh-CN.md", b"# T\n\n<!-- translated-from: README.md sha256:000000000000 -->\n")
+        report = repo_rules.Checker(self.translations(stale="error")).run([])
+        self.assertIn("translation-stale", "\n".join(report.problems))
+
+    def test_cjk_wrap_flags_break_between_characters(self) -> None:
+        self.write("README.md", b"# Title\n")
+        self.write(
+            "README.zh-CN.md",
+            "# \u6807\u9898\n\n<!-- translated-from: README.md sha256:000000000000 -->\n\n"
+            "\u8fd9\u662f\u4e00\u4e2a\u5f88\u957f\u7684\u53e5\u5b50\n\u5c1a\u672a\u7ed3\u675f\u3002\n".encode("utf-8"),
+        )
+        report = repo_rules.Checker(self.translations(cjk_wrap=True)).run([])
+        self.assertIn("cjk-wrap", "\n".join(report.problems))
+
+        # A break after punctuation is the correct way to wrap Chinese text.
+        self.write(
+            "README.zh-CN.md",
+            (
+                "# \u6807\u9898\n\n<!-- translated-from: README.md sha256:000000000000 -->\n\n"
+                "\u8fd9\u662f\u4e00\u4e2a\u5f88\u957f\u7684\u53e5\u5b50\u3002\n"
+                "\u4e0b\u4e00\u53e5\u4ece\u8fd9\u91cc\u5f00\u59cb\u3002\n"
+            ).encode("utf-8"),
+        )
+        report = repo_rules.Checker(self.translations(cjk_wrap=True)).run([])
+        self.assertNotIn("cjk-wrap", "\n".join(report.problems))
+
+    def test_lang_links_prefers_translated_sibling(self) -> None:
+        self.write("README.md", b"# Title\n")
+        self.write("docs/guide.md", b"# Guide\n")
+        self.write("docs/guide.zh-CN.md", b"# \u6307\u5357\n")
+        self.write(
+            "README.zh-CN.md",
+            (
+                "# \u6807\u9898\n\n<!-- translated-from: README.md sha256:000000000000 -->\n\n"
+                "- [English](README.md)\n"
+                "- [guide](docs/guide.md)\n"
+            ).encode("utf-8"),
+        )
+        report = repo_rules.Checker(self.translations(keep_language=True)).run([])
+        joined = "\n".join(report.problems)
+        self.assertIn("lang-link", joined)
+        self.assertIn("docs/guide.zh-CN.md", joined)
+        self.assertNotIn("README.md; use", joined)
+
+
 class InitTest(RuleTestCase):
     def test_init_writes_config_tool_and_templates(self) -> None:
         args = repo_rules.argparse.Namespace(

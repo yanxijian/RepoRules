@@ -6,6 +6,10 @@ All notable changes to RepoRules are documented here.
 
 ### Added
 
+- `markdown.translations`: optional checks for a maintained translated set -
+  the `<!-- translated-from: <file> sha256:<12> -->` marker and staleness
+  (report-only by default), CJK line wrapping (`cjk_wrap`), and "a translation
+  links to its translated siblings" (`keep_language`). Off unless configured.
 - `docs/ci-scheduling.md`: how to scope a build workflow so documentation-only
   changes do not start the compile/test pipeline. Covers the positive `paths:`
   allowlist (recommended), the `paths-ignore` alternative and its test-fixture
