@@ -6,6 +6,11 @@ All notable changes to RepoRules are documented here.
 
 ### Added
 
+- `commit_message.english`: commit messages must be English. Enforced by a new
+  `.githooks/commit-msg` hook (installed by `init` and `sync --hook`, next to
+  `pre-commit`) that runs the new `check-msg` subcommand, so a non-English message
+  is rejected before the commit exists. A message carrying the `allow_marker`
+  token (`cjk-ok`) is accepted, for one that quotes a Chinese title or a sample.
 - `comments.english`: code comments must be English. Flags Han, Kana, Hangul, CJK
   punctuation and fullwidth forms inside comments; quotations and data samples opt
   out with the `allow_marker` token (`cjk-ok`) or a file glob in `allow_files`.

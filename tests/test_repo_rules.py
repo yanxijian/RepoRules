@@ -328,6 +328,37 @@ class CommentLanguageTest(RuleTestCase):
         self.assertEqual(self.problems(self.comments(english=False)), "")
 
 
+class CommitMessageTest(RuleTestCase):
+    """commit_message.english: the subject and body are English."""
+
+    def message_file(self, text: str) -> Path:
+        path = self.root / "COMMIT_EDITMSG"
+        path.write_bytes(text.encode("utf-8"))
+        return path
+
+    def run_check(self, text: str, english: bool = True) -> int:
+        self.write(
+            "repo-rules.json",
+            json.dumps({"version": 1, "commit_message": {"english": english}}).encode(),
+        )
+        args = repo_rules.argparse.Namespace(
+            message_file=str(self.message_file(text)), config="repo-rules.json", root=str(self.root)
+        )
+        return repo_rules.command_check_msg(args)
+
+    def test_chinese_subject_is_rejected(self):
+        self.assertEqual(self.run_check("新增四语言 README\n"), 1)
+
+    def test_english_message_passes(self):
+        self.assertEqual(self.run_check("Add the four-language README\n\nBody in English.\n"), 0)
+
+    def test_marker_allows_a_quotation(self):
+        self.assertEqual(self.run_check('Quote "命中规则" from the design doc (cjk-ok)\n'), 0)
+
+    def test_disabled_flag_accepts_any_language(self):
+        self.assertEqual(self.run_check("新增四语言 README\n", english=False), 0)
+
+
 class SyncTest(RuleTestCase):
     def args(self, **overrides):
         values = {

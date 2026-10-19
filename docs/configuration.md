@@ -293,6 +293,41 @@ Neither is flagged, which is what keeps the rule usable on Windows-centric code.
 #define TITLE L"中文"                     -> allowed (string literal)
 ```
 
+## `commit_message`
+
+Commit messages are English. The check runs in the `commit-msg` hook, so a
+non-English message is rejected before the commit exists.
+
+```json
+"commit_message": {
+  "english": true,
+  "allow_marker": "cjk-ok"
+}
+```
+
+| Key | Meaning |
+|---|---|
+| `english` | `true` (default when the block is present) enables the check. Omit the block to disable it. |
+| `allow_marker` | A message containing this token skips the check (default `cjk-ok`), for a message that quotes a Chinese title or a data sample. |
+
+`repo-rules init` and `repo-rules sync --hook` install two hooks: `.githooks/pre-commit`
+(runs `check --staged`) and `.githooks/commit-msg` (runs `check-msg`, which is what
+rejects the message). Install them once per clone:
+
+```bash
+git config core.hooksPath .githooks
+```
+
+Run it by hand against an existing message file:
+
+```bash
+python scripts/repo_rules.py check-msg .git/COMMIT_EDITMSG --config repo-rules.json
+```
+
+The rule looks at the whole message, subject and body. It does not police the
+*content*: a message that is English but useless still passes. That is a review
+concern, not a mechanical one.
+
 ## `gitattributes`
 
 ```json

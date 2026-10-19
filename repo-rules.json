@@ -108,20 +108,21 @@
     "link_definitions": true
   },
   "required_files": [
+    "CHANGELOG.md",
     "LICENSE",
-    "README.md",
-    "README.zh-CN.md",
     "README.ja.md",
     "README.ko.md",
-    "CHANGELOG.md",
-    "repo_rules.py",
-    "repo-rules.json",
-    "presets/cpp-windows.json",
-    "presets/cpp-library.json",
-    "presets/python-tool.json",
-    "docs/configuration.md",
+    "README.md",
+    "README.zh-CN.md",
     "docs/adaptation.md",
     "docs/ci-scheduling.md",
+    "docs/configuration.md",
+    "presets/cpp-library.json",
+    "presets/cpp-windows.json",
+    "presets/python-tool.json",
+    "repo-rules.json",
+    "repo_rules.py",
+    "templates/githooks/commit-msg",
     "templates/githooks/pre-commit",
     "templates/github/workflows/hygiene.yml",
     "tests/test_repo_rules.py"
@@ -150,6 +151,9 @@
     ]
   },
   "comments": {
+    "english": true
+  },
+  "commit_message": {
     "english": true
   }
 }
