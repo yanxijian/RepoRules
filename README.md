@@ -1,20 +1,23 @@
 # RepoRules
 
-**简体中文** · [English](README.en.md)
+**English** · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
 
-把仓库里“靠人记住”的机械规范变成可执行检查：编码与行尾、列宽、禁止模式、头文件约定、版本同步、CHANGELOG、必需文件、Markdown 链接和中英文互链。
+Turn the mechanical parts of a repository's rules into executable checks:
+encoding and line endings, column width, forbidden patterns, header conventions,
+version sync, changelog shape, required files, Markdown links, and multi-language
+document sets.
 
-Python 3.9+，只用标准库，无第三方依赖。
+Python 3.9+, standard library only.
 
-## 为什么
+## Why
 
-README/AGENTS.md 里的规则会腐烂：人读了、忘了，没人发现。RepoRules 把**能由程序判断**的部分固化成一个检查器，CI 和 pre-commit 都能运行；需要判断力的部分仍留在项目自己的 `AGENTS.md`。
+Rules in README/AGENTS.md rot: someone reads them, forgets one, and nothing
+notices. RepoRules makes the **mechanically checkable** subset fail CI and
+pre-commit. Judgement calls stay in the project's own `AGENTS.md`.
 
-它不负责编译、单元测试、clang-format 重排或代码审查。
+It does not compile, run tests, reformat with clang-format, or replace review.
 
-## 快速开始
-
-直接运行：
+## Quick start
 
 ```bash
 python repo_rules.py check --config repo-rules.json
@@ -24,87 +27,103 @@ python repo_rules.py sync  --root ../MyProject --hook
 python repo_rules.py list-presets
 ```
 
-安装为命令（在源码目录）：
+Install as a command from a checkout:
 
 ```bash
 pipx install .
 repo-rules check --config repo-rules.json
 ```
 
-也可以只复制 `repo_rules.py` 到项目里，不安装任何东西。
+You can also copy `repo_rules.py` into a project without installing anything.
 
-## 引入到已有项目
+## Add to an existing project
 
 ```bash
-# 在 RepoRules 源码目录执行；已安装时可直接用 `repo-rules init`
+# run from the RepoRules checkout, or use `repo-rules init` when installed
 python repo_rules.py init --root ../MyProject --preset cpp-windows
 ```
 
-然后：
+Then:
 
-1. 编辑目标项目的 `repo-rules.json`（尤其是 `versions`、`required_files` 和 `markdown.bilingual_pairs`）。
-2. 运行 `python scripts/repo_rules.py check`。
-3. 安装钩子：`git config core.hooksPath .githooks`。
-4. 把生成的 `.github/workflows/hygiene.yml` 纳入 CI。
+1. Edit the target `repo-rules.json` (especially `versions`, `required_files`,
+   `markdown.languages` and `markdown.translations`).
+2. Run `python scripts/repo_rules.py check`.
+3. Install the hook: `git config core.hooksPath .githooks`.
+4. Keep the generated `.github/workflows/hygiene.yml` in CI.
 
-`--no-tool` 可以只生成配置和模板；`--force` 覆盖已生成文件。
+`--no-tool` writes only the config and templates; `--force` overwrites existing
+generated files.
 
-### 升级已嵌入的检查器
+### Update the vendored checker
 
-`init` 会把 `repo_rules.py` 复制到目标项目，副本会随 RepoRules 升级而过期。用 `sync` 推回新版本：
+`init` copies `repo_rules.py` into the target project, so that copy drifts as
+RepoRules evolves. `sync` pushes the current version back:
 
 ```bash
-python repo_rules.py sync --root ../MyProject            # 更新 scripts/repo_rules.py
-python repo_rules.py sync --root ../MyProject --hook     # 同时更新 .githooks/pre-commit
-python repo_rules.py sync --root ../MyProject --check    # 只检查：有落后副本时返回 1（适合 CI）
+python repo_rules.py sync --root ../MyProject            # refresh scripts/repo_rules.py
+python repo_rules.py sync --root ../MyProject --hook     # also refresh .githooks/pre-commit
+python repo_rules.py sync --root ../MyProject --check    # verify only; exit 1 when stale (CI-friendly)
 ```
 
-`--dest` 可改副本路径（默认 `scripts/repo_rules.py`）；`--source` 可指定其他版本作为来源。
+`--dest` changes the copy path (default `scripts/repo_rules.py`); `--source`
+picks a different checker as the source of truth.
 
-## 内置 preset
+## Built-in presets
 
-| Preset | 用途 |
+| Preset | Purpose |
 |---|---|
-| `cpp-windows` | Windows/MSVC C++：C/C++ UTF-8 BOM+CRLF，文档 CRLF，工具 LF，禁止 `#pragma comment(lib)` |
-| `cpp-library` | 头文件库/跨平台 C++ 风格，规则与 `cpp-windows` 类似 |
-| `python-tool` | Python 工具：全部 LF，版本同步、CHANGELOG、README 中英文互链 |
+| `cpp-windows` | Windows/MSVC C++: C/C++ UTF-8 BOM+CRLF, docs CRLF, tooling LF, no `#pragma comment(lib)` |
+| `cpp-library` | Header-only/cross-platform C++ style, similar rules |
+| `python-tool` | Python tooling: all LF, version sync, changelog, README pair |
 
-preset 只是起点。版本号和路径因项目而异，复制后按项目修改。
+A preset is a starting point. Version sources and project paths are
+project-specific; copy and edit.
 
-## 规则
+## Rules
 
-| 规则 | 配置键 | 说明 |
+| Rule | Config key | What it checks |
 |---|---|---|
-| 编码/行尾/BOM | `encoding` | 按 glob 匹配，首条命中生效；`--fix` 只修复这一类 |
-| 列宽 | `width` | 按 tab width 展开后统计，默认 140 |
-| 禁止模式 | `forbidden` | 正则 + glob + 规则 id，例如禁止 `#pragma comment(lib)` |
-| 头文件 | `headers` | 首个有效行 `#pragma once`，禁止 namespace 级 `using namespace` |
-| 版本同步 | `versions` | 多个文件的捕获组必须相等，例如 CMake、`.rc`、头文件宏 |
-| CHANGELOG | `changelog` | 必需 `## [Unreleased]`，`## [x]` 必须有 `[x]: url` |
-| 必需文件 | `required_files` | LICENSE、README、CHANGELOG 等 |
-| Markdown | `markdown` | 相对链接可解析；双语文件互相链接 |
-| `.gitattributes` | `gitattributes` | 必需的正则模式，确保行尾标准被声明 |
+| Encoding/EOL/BOM | `encoding` | Glob-matched policy, first match wins; `--fix` repairs this class |
+| Column width | `width` | Tab-expanded width, default 140 |
+| Forbidden pattern | `forbidden` | Regex + globs + rule id, e.g. no `#pragma comment(lib)` |
+| Headers | `headers` | First significant line `#pragma once`; no namespace-scope `using namespace` |
+| Version sync | `versions` | Captured groups across files must agree (CMake, `.rc`, header macros) |
+| Changelog | `changelog` | Requires `## [Unreleased]`; every `## [x]` has `[x]: url` |
+| Required files | `required_files` | LICENSE, README, CHANGELOG, etc. |
+| Markdown | `markdown` | Relative links resolve; language sets are complete and ordered |
+| `.gitattributes` | `gitattributes` | Required regex patterns so the EOL policy is declared |
 
-完整配置字段与示例见 [docs/configuration.md](docs/configuration.md)；迁移步骤见 [docs/adaptation.md](docs/adaptation.md)；
-CI 触发范围（只改文档时不跑编译流水线）见 [docs/ci-scheduling.md](docs/ci-scheduling.md)。
+`markdown.languages` checks one document set with N ordered variants: every file
+exists, the switch line under the title starts with the current language in bold,
+and it links to the other variants in the configured order. For the marker-based
+translation checks (`translated-from`, staleness, CJK wrapping) use
+`markdown.translations`.
 
-## 设计边界
+See [docs/configuration.md](docs/configuration.md) for the full schema and
+examples, [docs/adaptation.md](docs/adaptation.md) for migration steps, and
+[docs/ci-scheduling.md](docs/ci-scheduling.md) for CI trigger scoping
+(documentation-only changes must not start the build pipeline).
 
-- 不解析 C++ AST，不做语义检查。
-- 不替代 clang-format；列宽和禁止模式是“可机械判定”的补充。
-- 不改写 Markdown、不改写版本号；`fix` 只处理编码/BOM/行尾。
-- 不访问网络，不执行项目代码。
-- 规则默认值保守；项目应在配置里明确自己的策略。
+## Scope
 
-## 开发
+- No C++ AST; no semantic checks.
+- Not a replacement for clang-format; width and forbidden patterns are the
+  mechanical complements.
+- It never rewrites Markdown or version numbers; `fix` only repairs
+  encoding/BOM/line endings.
+- No network, no execution of project code.
+- Defaults are conservative; each project should state its own policy.
+
+## Development
 
 ```bash
 python -m unittest discover -s tests -v
 python repo_rules.py check --config repo-rules.json
 ```
 
-本仓库用自己的 `repo-rules.json` 自举检查。CI 运行仓库规则和单元测试。
+This repository checks itself with its own `repo-rules.json`. CI runs the
+repository rules and the unit tests.
 
 ## License
 
-MIT，见 [LICENSE](LICENSE)。
+MIT, see [LICENSE](LICENSE).
