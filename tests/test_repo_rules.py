@@ -281,6 +281,53 @@ class LanguagesTest(RuleTestCase):
 
 
 
+class CommentLanguageTest(RuleTestCase):
+    """comments.english: code comments are English; quotes may opt out per line."""
+
+    def comments(self, **extra):
+        block = {"english": True}
+        block.update(extra)
+        return self.config(comments=block)
+
+    def problems(self, config=None):
+        return "\n".join(
+            repo_rules.Checker(config or self.comments()).run(sorted(self.root.glob("*.*"))).problems
+        )
+
+    def test_chinese_shell_comment_is_a_violation(self):
+        self.write("run.sh", "# 部署脚本\nset -e\n".encode())
+        self.assertIn("[comments]", self.problems())
+
+    def test_english_comments_pass(self):
+        self.write("run.sh", b"# Deploy script\nset -e\n")
+        self.assertEqual(self.problems(), "")
+
+    def test_cjk_in_a_string_literal_is_not_a_comment(self):
+        self.write("run.sh", 'echo "部署完成"\n'.encode())
+        self.assertEqual(self.problems(), "")
+
+    def test_c_preprocessor_line_is_not_a_comment(self):
+        self.write("demo.h", '#define LABEL L"中文"\n'.encode())
+        self.assertEqual(self.problems(), "")
+
+    def test_chinese_cpp_line_and_block_comments_are_violations(self):
+        self.write("demo.cpp", "// 说明\nint x;\n/* 块注释 */\n".encode())
+        report = repo_rules.Checker(self.comments()).run(sorted(self.root.glob("*.*")))
+        self.assertEqual(sum("[comments]" in problem for problem in report.problems), 2)
+
+    def test_allow_marker_silences_one_line(self):
+        self.write("demo.cpp", '/// Design doc "命中规则"  // cjk-ok\n'.encode())
+        self.assertEqual(self.problems(), "")
+
+    def test_allow_files_skips_the_whole_file(self):
+        self.write("demo.cpp", "// 说明\n".encode())
+        self.assertEqual(self.problems(self.comments(allow_files=["demo.cpp"])), "")
+
+    def test_english_false_disables_the_rule(self):
+        self.write("run.sh", "# 部署脚本\n".encode())
+        self.assertEqual(self.problems(self.comments(english=False)), "")
+
+
 class SyncTest(RuleTestCase):
     def args(self, **overrides):
         values = {

@@ -6,6 +6,12 @@ All notable changes to RepoRules are documented here.
 
 ### Added
 
+- `comments.english`: code comments must be English. Flags Han, Kana, Hangul, CJK
+  punctuation and fullwidth forms inside comments; quotations and data samples opt
+  out with the `allow_marker` token (`cjk-ok`) or a file glob in `allow_files`.
+  Only unambiguous comment shapes are read (`//` / `/* */`, `#`, `REM` / `::`), so a
+  `#define ... L"中文"` preprocessor line and an `echo "中文"` string literal are
+  never flagged.
 - `markdown.languages.stale`: `off` (default) / `warning` / `error`. When on, every
   language variant must carry `<!-- translated-from: <default> sha256:<12> -->`,
   and a changed default file reports `language-stale` with both hashes. The

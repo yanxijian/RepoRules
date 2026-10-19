@@ -255,6 +255,44 @@ The marker records the source revision the translation came from:
 translation means updating this value by hand - the checker never edits
 documents, it only reports drift.
 
+## `comments`
+
+Code comments are English. Other languages are allowed only for a quotation, a
+data sample or a reference to a document heading, and those opt out per line.
+
+```json
+"comments": {
+  "english": true,
+  "globs": ["*.c", "*.h", "*.py", "*.sh", "*.ps1"],
+  "allow_files": ["include/shell_ext/vendor/**"],
+  "allow_marker": "cjk-ok"
+}
+```
+
+| Key | Meaning |
+|---|---|
+| `english` | `true` (default) enables the check; `false` disables it. |
+| `globs` | Which files to scan. Defaults to C/C++, Python, shell, PowerShell, JavaScript and batch files. |
+| `allow_files` | Globs skipped entirely, for a file whose subject matter *is* another language. |
+| `allow_marker` | A comment containing this token is skipped (default `cjk-ok`). Use it on the line that quotes something. |
+
+The check looks for Han, Hiragana, Katakana, Hangul, CJK punctuation and fullwidth
+forms inside comment text. It only reads shapes that are unambiguously comments:
+
+- `//` and `/* */` for C/C++/JavaScript, tracked across lines;
+- `#` for Python, shell and PowerShell;
+- `REM` and `::` for batch files.
+
+That last point matters: a `#define LABEL L"中文"` line is a preprocessor
+directive, **not** a comment, and a `echo "中文"` line carries a string literal.
+Neither is flagged, which is what keeps the rule usable on Windows-centric code.
+
+```cpp
+// 这是中文注释            -> flagged
+/// Design doc "命中规则"  // cjk-ok   -> allowed
+#define TITLE L"中文"                     -> allowed (string literal)
+```
+
 ## `gitattributes`
 
 ```json
