@@ -359,6 +359,80 @@ class CommitMessageTest(RuleTestCase):
         self.assertEqual(self.run_check("新增四语言 README\n", english=False), 0)
 
 
+class TranslationCoverTest(RuleTestCase):
+    """markdown.translations.cover / untracked: no silent new document, no silent translation."""
+
+    def build(self, **translations):
+        block = {"pairs": [], "marker": "translated-from:"}
+        block.update(translations)
+        config = self.config(markdown={"globs": ["*.md"], "translations": block})
+        return repo_rules.Checker(config)
+
+    def files(self, *names):
+        for name in names:
+            self.write(name, b"# Doc\n")
+        return sorted(self.root.rglob("*.md"))
+
+    def test_complete_cover_is_clean(self):
+        paths = self.files("docs/zh/a.md", "docs/en/a.md")
+        report = self.build(cover=[{"from": "docs/zh", "to": "docs/en"}]).run(paths)
+        self.assertEqual(report.problems, [])
+
+    def test_missing_translation_is_an_error(self):
+        paths = self.files("docs/zh/a.md", "docs/en/a.md", "docs/zh/b.md")
+        report = self.build(cover=[{"from": "docs/zh", "to": "docs/en"}]).run(paths)
+        self.assertTrue(any("translation-cover" in problem and "b.md" in problem for problem in report.problems))
+
+    def test_ignore_records_a_deliberate_gap(self):
+        paths = self.files("docs/zh/a.md", "docs/en/a.md", "docs/zh/b.md")
+        report = self.build(cover=[{"from": "docs/zh", "to": "docs/en", "ignore": ["b.md"]}]).run(paths)
+        self.assertEqual(report.problems, [])
+
+    def test_missing_can_be_a_warning(self):
+        paths = self.files("docs/zh/a.md", "docs/en/a.md", "docs/zh/b.md")
+        report = self.build(cover=[{"from": "docs/zh", "to": "docs/en", "missing": "warning"}]).run(paths)
+        self.assertEqual(report.problems, [])
+        self.assertTrue(any("translation-cover" in warning for warning in report.warnings))
+
+    def marker(self, source: str) -> bytes:
+        return ("<!-- translated-from: %s sha256:0123456789ab -->\n# Doc\n" % source).encode()
+
+    def test_unpaired_english_document_is_not_flagged(self):
+        self.write("docs/zh/a.md", b"# Doc\n")
+        self.write("docs/en/a.md", self.marker("docs/zh/a.md"))
+        self.write("docs/en/only-english.md", b"# Doc\n")
+        paths = sorted(self.root.rglob("*.md"))
+        report = self.build(
+            pairs=[["docs/zh/a.md", "docs/en/a.md"]],
+            cover=[{"from": "docs/zh", "to": "docs/en"}],
+            untracked=True,
+        ).run(paths)
+        self.assertEqual(report.problems, [])
+
+    def test_unregistered_translation_is_flagged(self):
+        self.write("docs/zh/a.md", b"# Doc\n")
+        self.write("docs/en/a.md", self.marker("docs/zh/a.md"))
+        self.write("docs/zh/b.md", b"# Doc\n")
+        self.write("docs/en/b.md", self.marker("docs/zh/b.md"))
+        paths = sorted(self.root.rglob("*.md"))
+        report = self.build(
+            pairs=[["docs/zh/a.md", "docs/en/a.md"]],
+            cover=[{"from": "docs/zh", "to": "docs/en"}],
+            untracked=True,
+        ).run(paths)
+        self.assertTrue(
+            any("translation-untracked" in problem and "docs/en/b.md" in problem for problem in report.problems)
+        )
+        self.assertFalse(
+            any("translation-untracked" in problem and "docs/en/a.md" in problem for problem in report.problems)
+        )
+
+    def test_untracked_also_covers_suffixed_translations(self):
+        paths = self.files("README.md", "README.zh-CN.md")
+        report = self.build(pairs=[], untracked=True).run(paths)
+        self.assertTrue(any("translation-untracked" in problem for problem in report.problems))
+
+
 class SyncTest(RuleTestCase):
     def args(self, **overrides):
         values = {

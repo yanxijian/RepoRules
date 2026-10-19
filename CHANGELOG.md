@@ -6,6 +6,14 @@ All notable changes to RepoRules are documented here.
 
 ### Added
 
+- `markdown.translations.cover`: a directory pair must be complete. Every
+  `docs/zh/*.md` needs the same relative path under `docs/en/`, unless listed in
+  `ignore` (a deliberate Chinese-only note). One direction only: an English-only
+  document is not a gap. `missing` is `error` by default, `warning` if a repo
+  prefers to land translations later.
+- `markdown.translations.untracked`: reports a file that looks like a translation
+  (a target with a source counterpart, or a `*<suffix>` file) but is missing from
+  `pairs`, where staleness is checked.
 - `commit_message.english`: commit messages must be English. Enforced by a new
   `.githooks/commit-msg` hook (installed by `init` and `sync --hook`, next to
   `pre-commit`) that runs the new `check-msg` subcommand, so a non-English message

@@ -1,7 +1,10 @@
 #!/bin/sh
-# Self-check hook for the RepoRules repository.
+# Pre-commit hook installed by `repo-rules init`.
+#
 # Install once per clone:
 #   git config core.hooksPath .githooks
+#
+# The same check runs in CI; this hook is a convenience.
 
 set -e
 root=$(git rev-parse --show-toplevel)
@@ -9,7 +12,7 @@ cd "$root"
 
 for candidate in python3 python py; do
 	if command -v "$candidate" >/dev/null 2>&1 && "$candidate" -c 'import sys' >/dev/null 2>&1; then
-		exec "$candidate" repo_rules.py check --config repo-rules.json --staged
+		exec "$candidate" scripts/repo_rules.py check --config repo-rules.json --staged
 	fi
 done
 

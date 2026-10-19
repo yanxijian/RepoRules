@@ -218,6 +218,44 @@ title means there is no switch line and the check fails.
 checks presence, order and the switcher; `translations` checks the provenance
 marker and whether a translation went stale.
 
+### `markdown.translations.cover` (optional)
+
+`pairs` is an explicit list, so a *new* document can appear without anyone
+noticing that its translation is missing. `cover` closes that gap for a
+directory pair where the documents are meant to be fully bilingual.
+
+```json
+"markdown": {
+  "translations": {
+    "pairs": [["docs/zh/build.md", "docs/en/build.md"]],
+    "cover": [
+      {"from": "docs/zh", "to": "docs/en", "ignore": ["product-plan.md"], "missing": "error"}
+    ],
+    "untracked": true
+  }
+}
+```
+
+| Key | Meaning |
+|---|---|
+| `from` | Source directory, relative to the repository root. Every `*.md` below it must exist at the same relative path under `to`. |
+| `to` | Target (translation) directory. |
+| `ignore` | Globs, relative to `from`, that are deliberately untranslated. A Chinese-only design note belongs here. |
+| `missing` | `error` (default) or `warning`. |
+
+One direction only, on purpose: a target file with no source counterpart is a
+legitimately English-only document, not a gap. Check the direction you actually
+translate.
+
+`untracked: true` additionally reports a file that *looks like* a translation
+(a target file that has a source counterpart, or a `*<suffix>` file) but is not
+listed in `pairs`, so nothing ever checks it for staleness.
+
+```text
+docs/en/b.md: [translation-untracked] looks like a translation but is not listed
+in markdown.translations.pairs, so it is never checked for staleness
+```
+
 ### `markdown.translations` (optional)
 
 Three checks for repositories that maintain a translated set of documents. Omit
