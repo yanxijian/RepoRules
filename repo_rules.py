@@ -1049,6 +1049,11 @@ class Checker:
     def _check_translation_untracked(self) -> None:
         """A file that looks like a translation must be registered in `pairs`."""
         tracked = {target for _source, target in self.config.translation_pairs}
+        # A README tracked by markdown.languages carries a translated-from marker
+        # too, so it must not be reported as untracked here.
+        if self.config.languages:
+            tracked.add(self.config.languages["default"])
+            tracked.update(self.config.languages["variants"])
         candidates: List[str] = []
 
         for entry in self.config.translation_cover:
