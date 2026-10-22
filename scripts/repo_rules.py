@@ -30,7 +30,7 @@ from dataclasses import dataclass, field
 from pathlib import Path, PurePosixPath
 from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple
 
-__version__ = "0.8.0"
+__version__ = "0.9.0"
 CONFIG_NAME = "repo-rules.json"
 TOOL_ROOT = Path(__file__).resolve().parent
 BOM = b"\xef\xbb\xbf"
@@ -425,6 +425,18 @@ class RuleConfig:
                 for index, item in enumerate(_as_list(readme_badges.get("require", []), "readme_badges.require"))
             ]
 
+        # about: the declared GitHub description, checked for shape and language order.
+        about = data.get("about", {})
+        self.about_description = ""
+        self.about_order = "en-zh"
+        if about:
+            if not isinstance(about, dict):
+                raise ConfigError("about must be an object")
+            self.about_description = _as_str(about.get("description", ""), "about.description")
+            self.about_order = _as_str(about.get("order", "en-zh"), "about.order")
+            if self.about_order not in ("en-zh", "zh-en"):
+                raise ConfigError("about.order must be en-zh or zh-en")
+
         gitattributes = data.get("gitattributes", {})
         if not isinstance(gitattributes, dict):
             raise ConfigError("gitattributes must be an object")
@@ -690,6 +702,8 @@ def badge_block(text: str) -> Tuple[int, List[str]]:
             continue
         break
     return (start + 1 if badges else 0), badges
+
+
 CJK_START = re.compile(r"^[\u4e00-\u9fff]")
 CJK_PUNCT_END = re.compile(r"[，。；：！？、]$")
 
@@ -765,6 +779,7 @@ class Checker:
         self._check_bilingual()
         self._check_languages()
         self._check_readme_badges()
+        self._check_about()
         if self.config.translation_pairs:
             self._check_translations()
             if self.config.translation_cjk_wrap:
@@ -804,9 +819,57 @@ class Checker:
                     "%d badge(s), expected at least %d" % (found, self.config.badge_min),
                 )
             joined = "\n".join(badges)
+            seen: Dict[str, int] = {}
+            for target in BADGE_IMAGE.findall(joined):
+                seen[target] = seen.get(target, 0) + 1
+            for target, count in seen.items():
+                if count > 1:
+                    self.report.bad(
+                        where,
+                        "readme-badges",
+                        "the same badge appears %d times: %s" % (count, target),
+                    )
             for pattern in self.config.badge_required:
                 if pattern not in joined:
                     self.report.bad(where, "readme-badges", "missing required badge: %s" % pattern)
+
+    def _check_about(self) -> None:
+        """The declared About description: one ` | ` separator, and the language order."""
+        if not self.config.about_description and self.config.about_order == "en-zh":
+            return  # block absent
+        text = self.config.about_description.strip()
+        if not text:
+            self.report.bad("repo-rules.json", "about", "about.description is empty")
+            return
+        parts = [part.strip() for part in text.split("|")]
+        if len(parts) != 2 or not all(parts):
+            self.report.bad(
+                "repo-rules.json",
+                "about",
+                "about.description must be `left | right` with exactly one pipe and no empty side",
+            )
+            return
+        left, right = parts
+        if self.config.about_order == "en-zh":
+            first_lang, second_lang = "English", "Chinese"
+            ok_first, ok_second = not NON_LATIN.search(left), bool(NON_LATIN.search(right))
+        else:
+            first_lang, second_lang = "Chinese", "English"
+            ok_first, ok_second = bool(NON_LATIN.search(left)), not NON_LATIN.search(right)
+        if not ok_first:
+            self.report.bad(
+                "repo-rules.json",
+                "about",
+                "about.order is %s, so the left side must be %s: %s"
+                % (self.config.about_order, first_lang, left),
+            )
+        if not ok_second:
+            self.report.bad(
+                "repo-rules.json",
+                "about",
+                "about.order is %s, so the right side must be %s: %s"
+                % (self.config.about_order, second_lang, right),
+            )
 
     def _check_comments(self, path: Path, rel: str) -> None:
         if not self.config.comment_globs:
