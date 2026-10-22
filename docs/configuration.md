@@ -393,6 +393,31 @@ under the title or the switch line. The first prose line ends it, so a badge tha
 sits in the middle of the document is reported as "no badge block" instead of
 being silently accepted.
 
+## `about`
+
+The repository's GitHub About text, declared so the shape and the language order
+can be checked offline.
+
+```json
+"about": {
+  "description": "Header-only recursive read/write mutex | 单头文件可重入读写锁",
+  "order": "en-zh"
+}
+```
+
+| Key | Meaning |
+|---|---|
+| `description` | The exact About text. Exactly one ` \| ` separator, neither side empty. |
+| `order` | `en-zh` (default) or `zh-en`: which language comes first. |
+
+The rule checks that the left side is written in the language `order` names and
+the right side in the other one, so a repository whose README defaults to
+Chinese declares `zh-en` and cannot end up with English on the left by accident.
+
+The checker never talks to the network, so it verifies the *declared* value, not
+what GitHub currently shows. Comparing the two is a job for a script that can
+call `gh` (the workspace keeps one).
+
 ## `gitattributes`
 
 ```json

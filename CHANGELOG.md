@@ -6,6 +6,9 @@ All notable changes to RepoRules are documented here.
 
 ### Added
 
+- `about`: the declared GitHub About text, checked for one ` | ` separator and
+  for the language order (`en-zh` / `zh-en`). Offline only: the checker verifies
+  what the configuration declares, not what GitHub shows.
 - `readme_badges`: the shield block must sit directly under the title (and under
   the language switch line when there is one), above the first paragraph. Checks a
   minimum count and required substrings, so a CI badge and a license badge cannot

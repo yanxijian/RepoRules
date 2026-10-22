@@ -489,6 +489,38 @@ class ReadmeBadgesTest(RuleTestCase):
         self.assertIn("the same badge appears 2 times", self.problems(self.build()))
 
 
+class AboutTest(RuleTestCase):
+    """about: one pipe, and the left side is the language the README defaults to."""
+
+    def check(self, description: str, order: str = "en-zh") -> str:
+        self.write(
+            "repo-rules.json",
+            json.dumps(
+                {"version": 1, "about": {"description": description, "order": order}}
+            ).encode(),
+        )
+        config = repo_rules.RuleConfig.load(self.root, "repo-rules.json")
+        return "\n".join(repo_rules.Checker(config).run([]).problems)
+
+    def test_english_first_is_clean(self):
+        self.assertEqual(self.check("Header-only recursive mutex | 单头文件可重入锁"), "")
+
+    def test_chinese_first_is_clean_when_declared(self):
+        self.assertEqual(self.check("聚合仓库 | Aggregation meta-repo", order="zh-en"), "")
+
+    def test_wrong_order_is_a_violation(self):
+        problems = self.check("单头文件可重入锁 | Header-only recursive mutex")
+        self.assertIn("left side must be English", problems)
+
+    def test_missing_pipe_is_a_violation(self):
+        self.assertIn("exactly one pipe", self.check("just one language"))
+
+    def test_unknown_order_is_rejected(self):
+        self.write("repo-rules.json", json.dumps({"version": 1, "about": {"order": "fr-en"}}).encode())
+        with self.assertRaises(repo_rules.ConfigError):
+            repo_rules.RuleConfig.load(self.root, "repo-rules.json")
+
+
 class SyncTest(RuleTestCase):
     def args(self, **overrides):
         values = {
