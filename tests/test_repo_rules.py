@@ -484,6 +484,10 @@ class ReadmeBadgesTest(RuleTestCase):
         problems = self.problems(self.build(minimum=1, required=["img.shields.io/badge/Python"]))
         self.assertIn("missing required badge: img.shields.io/badge/Python", problems)
 
+    def test_the_same_badge_twice_is_a_violation(self):
+        self.write("README.md", ("# Demo\n\n%s\n%s\n%s\n\nProse.\n" % (self.CI, self.LICENSE, self.CI)).encode())
+        self.assertIn("the same badge appears 2 times", self.problems(self.build()))
+
 
 class SyncTest(RuleTestCase):
     def args(self, **overrides):

@@ -10,7 +10,7 @@ All notable changes to RepoRules are documented here.
   the language switch line when there is one), above the first paragraph. Checks a
   minimum count and required substrings, so a CI badge and a license badge cannot
   quietly disappear; listing every language variant keeps the four READMEs
-  identical.
+  identical. The same badge target may not appear twice in the block.
 - `markdown.translations.cover`: a directory pair must be complete. Every
   `docs/zh/*.md` needs the same relative path under `docs/en/`, unless listed in
   `ignore` (a deliberate Chinese-only note). One direction only: an English-only

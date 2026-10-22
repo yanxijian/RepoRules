@@ -385,6 +385,9 @@ line when there is one, above the first paragraph.
 | `min` | Minimum number of badge images in the block. |
 | `require` | Substrings that must appear in the block, for example a CI badge and a license badge. |
 
+A badge image may appear only once in the block: the same target URL twice is
+reported, so a half-finished edit cannot leave two CI badges side by side.
+
 The block is the run of badge lines (blank lines allowed) that starts directly
 under the title or the switch line. The first prose line ends it, so a badge that
 sits in the middle of the document is reported as "no badge block" instead of
