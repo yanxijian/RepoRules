@@ -521,6 +521,51 @@ class AboutTest(RuleTestCase):
             repo_rules.RuleConfig.load(self.root, "repo-rules.json")
 
 
+class ActionsTest(RuleTestCase):
+    """actions: every workflow must use the configured major version."""
+
+    WORKFLOW = """name: ci
+on: [push]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@%s
+      - uses: actions/cache@%s
+"""
+
+    def run_check(self, checkout: str, cache: str = "v6", **actions) -> str:
+        path = self.write(
+            ".github/workflows/ci.yml", (self.WORKFLOW % (checkout, cache)).encode("utf-8")
+        )
+        settings = {"require": {"actions/checkout": "v7", "actions/cache": "v6"}}
+        settings.update(actions)
+        config = self.config(actions=settings)
+        return "\n".join(repo_rules.Checker(config).run([path]).problems)
+
+    def test_required_major_passes(self):
+        self.assertEqual(self.run_check("v7"), "")
+
+    def test_patch_tag_of_the_same_major_passes(self):
+        self.assertEqual(self.run_check("v7.0.1"), "")
+
+    def test_old_major_is_reported(self):
+        self.assertIn("actions/checkout@v4, expected @v7", self.run_check("v4"))
+
+    def test_sha_pin_is_accepted_by_default(self):
+        self.assertEqual(self.run_check("11d5960a326750d5838078e36cf38b85af677262"), "")
+
+    def test_sha_pin_is_reported_when_not_allowed(self):
+        problems = self.run_check("11d5960a326750d5838078e36cf38b85af677262", allow_sha=False)
+        self.assertIn("pinned by a commit SHA", problems)
+
+    def test_unlisted_action_is_ignored(self):
+        self.assertEqual(self.run_check("v7"), "")
+
+    def test_listed_action_with_a_wrong_version_is_reported(self):
+        self.assertIn("actions/cache@v1, expected @v6", self.run_check("v7", cache="v1"))
+
+
 class SyncTest(RuleTestCase):
     def args(self, **overrides):
         values = {

@@ -172,5 +172,16 @@
   "about": {
     "description": "Mechanical repository hygiene checks for C++/Python projects: encoding, line endings, version sync, changelog, links, bilingual pairs | 可机械执行的仓库工程规范检查器（Python 3.9+）：编码/行尾、列宽、版本同步、CHANGELOG、链接与双语互链",
     "order": "en-zh"
+  },
+  "actions": {
+    "require": {
+      "actions/checkout": "v7",
+      "actions/setup-python": "v7",
+      "actions/setup-node": "v7",
+      "actions/upload-artifact": "v7",
+      "actions/download-artifact": "v8",
+      "actions/cache": "v6"
+    },
+    "allow_sha": true
   }
 }

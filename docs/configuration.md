@@ -418,6 +418,39 @@ The checker never talks to the network, so it verifies the *declared* value, not
 what GitHub currently shows. Comparing the two is a job for a script that can
 call `gh` (the workspace keeps one).
 
+## `actions`
+
+Pins the major version of each GitHub Action used in the workflows, so an old
+version cannot drift back in after a manual edit.
+
+```json
+"actions": {
+  "globs": [".github/workflows/*.yml", ".github/workflows/*.yaml"],
+  "require": {
+    "actions/checkout": "v7",
+    "actions/setup-python": "v7",
+    "actions/upload-artifact": "v7",
+    "actions/download-artifact": "v8",
+    "actions/cache": "v6"
+  },
+  "allow_sha": true
+}
+```
+
+| Key | Meaning |
+|---|---|
+| `globs` | Which files to scan. Defaults to the two workflow patterns above. |
+| `require` | `owner/action` -> required ref. Only listed actions are checked; anything else is ignored. |
+| `allow_sha` | `true` (default) accepts a 40-character commit SHA in place of a tag, because the version behind a SHA cannot be resolved without network access. `false` rejects it, which is what a repository that wants every action on a tag should use. |
+
+The comparison is on the major number, so `v7` accepts `v7`, `v7.0.1` and `7`,
+and reports `actions/checkout@v4, expected @v7`. The rule reports the file and
+line, which is the one thing a Dependabot PR does not do for you.
+
+Two cases it deliberately leaves alone: an action that is not listed in
+`require` (a new action is not silently assumed to need a particular version),
+and a SHA pin when `allow_sha` is true.
+
 ## `gitattributes`
 
 ```json

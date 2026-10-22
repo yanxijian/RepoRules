@@ -6,6 +6,9 @@ All notable changes to RepoRules are documented here.
 
 ### Added
 
+- `actions`: pins the major version of each GitHub Action used in the workflows
+  (`require`), comparing by major number so `v7.0.1` satisfies `v7`. A SHA pin is
+  accepted unless `allow_sha` is false. Unlisted actions are ignored.
 - `about`: the declared GitHub About text, checked for one ` | ` separator and
   for the language order (`en-zh` / `zh-en`). Offline only: the checker verifies
   what the configuration declares, not what GitHub shows.
