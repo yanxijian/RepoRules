@@ -366,6 +366,30 @@ The rule looks at the whole message, subject and body. It does not police the
 *content*: a message that is English but useless still passes. That is a review
 concern, not a mechanical one.
 
+## `readme_badges`
+
+The shield block belongs directly under the title, and under the language switch
+line when there is one, above the first paragraph.
+
+```json
+"readme_badges": {
+  "files": ["README.md", "README.zh-CN.md", "README.ja.md", "README.ko.md"],
+  "min": 3,
+  "require": ["actions/workflows/", "img.shields.io/badge/License"]
+}
+```
+
+| Key | Meaning |
+|---|---|
+| `files` | Which READMEs must carry the block. Listing every language variant keeps them identical. |
+| `min` | Minimum number of badge images in the block. |
+| `require` | Substrings that must appear in the block, for example a CI badge and a license badge. |
+
+The block is the run of badge lines (blank lines allowed) that starts directly
+under the title or the switch line. The first prose line ends it, so a badge that
+sits in the middle of the document is reported as "no badge block" instead of
+being silently accepted.
+
 ## `gitattributes`
 
 ```json

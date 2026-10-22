@@ -2,7 +2,11 @@
 
 **한국어** · [English](README.md) · [简体中文](README.zh-CN.md) · [日本語](README.ja.md)
 
-<!-- translated-from: README.md sha256:b4c8c23d52bb -->
+[![hygiene](https://github.com/yanxijian/RepoRules/actions/workflows/hygiene.yml/badge.svg)](https://github.com/yanxijian/RepoRules/actions/workflows/hygiene.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
+
+<!-- translated-from: README.md sha256:952c131686b4 -->
 
 저장소 규칙 가운데 "사람 기억에 의존하는" 기계적인 부분을 실행 가능한 검사로 바꿉니다. 인코딩과 줄바꿈, 열 너비, 금지 패턴, 헤더 규약, 버전 동기화, CHANGELOG 형태, 필수 파일, Markdown 링크, 다국어 문서 세트가 대상입니다.
 

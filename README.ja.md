@@ -2,7 +2,11 @@
 
 **日本語** · [English](README.md) · [简体中文](README.zh-CN.md) · [한국어](README.ko.md)
 
-<!-- translated-from: README.md sha256:b4c8c23d52bb -->
+[![hygiene](https://github.com/yanxijian/RepoRules/actions/workflows/hygiene.yml/badge.svg)](https://github.com/yanxijian/RepoRules/actions/workflows/hygiene.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
+
+<!-- translated-from: README.md sha256:952c131686b4 -->
 
 リポジトリの規約のうち「人の記憶に頼っている」機械的な部分を、実行できるチェックに変えます。文字コードと改行、桁幅、禁止パターン、ヘッダーの取り決め、バージョンの同期、CHANGELOG の形、必須ファイル、Markdown のリンク、多言語のドキュメントセットが対象です。
 

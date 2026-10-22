@@ -2,6 +2,10 @@
 
 **English** · [简体中文](README.zh-CN.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
 
+[![hygiene](https://github.com/yanxijian/RepoRules/actions/workflows/hygiene.yml/badge.svg)](https://github.com/yanxijian/RepoRules/actions/workflows/hygiene.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/Python-3.9%2B-blue.svg)](https://www.python.org/)
+
 Turn the mechanical parts of a repository's rules into executable checks:
 encoding and line endings, column width, forbidden patterns, header conventions,
 version sync, changelog shape, required files, Markdown links, and multi-language

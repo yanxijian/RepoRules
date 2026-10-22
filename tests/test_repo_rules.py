@@ -433,6 +433,58 @@ class TranslationCoverTest(RuleTestCase):
         self.assertTrue(any("translation-untracked" in problem for problem in report.problems))
 
 
+class ReadmeBadgesTest(RuleTestCase):
+    """readme_badges: shields sit under the title, above the prose."""
+
+    CI = "[![CI](https://github.com/o/r/actions/workflows/ci.yml/badge.svg)](https://github.com/o/r/actions/workflows/ci.yml)"
+    LICENSE = "[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)"
+
+    def build(self, minimum=2, required=None):
+        self.write(
+            "repo-rules.json",
+            json.dumps(
+                {
+                    "version": 1,
+                    "readme_badges": {"files": ["README.md"], "min": minimum, "require": required or []},
+                }
+            ).encode(),
+        )
+        return repo_rules.RuleConfig.load(self.root, "repo-rules.json")
+
+    def problems(self, config):
+        files = sorted(self.root.glob("README*.md"))
+        return "\n".join(repo_rules.Checker(config).run(files).problems)
+
+    def test_two_badges_under_the_language_line_pass(self):
+        self.write(
+            "README.md",
+            ("# Demo\n\n**English** · [中文](README.zh-CN.md)\n\n%s\n%s\n\nProse.\n" % (self.CI, self.LICENSE)).encode(),
+        )
+        self.assertEqual(self.problems(self.build()), "")
+
+    def test_single_language_readme_needs_no_switch_line(self):
+        self.write("README.md", ("# Demo\n\n%s\n%s\n\nProse.\n" % (self.CI, self.LICENSE)).encode())
+        self.assertEqual(self.problems(self.build()), "")
+
+    def test_no_badge_block_is_a_violation(self):
+        self.write("README.md", b"# Demo\n\nJust prose.\n")
+        self.assertIn("no badge block", self.problems(self.build()))
+
+    def test_badges_after_the_first_paragraph_are_not_at_the_top(self):
+        self.write("README.md", ("# Demo\n\nProse first.\n\n%s\n%s\n" % (self.CI, self.LICENSE)).encode())
+        self.assertIn("no badge block", self.problems(self.build()))
+
+    def test_too_few_badges_is_a_violation(self):
+        self.write("README.md", ("# Demo\n\n%s\n\nProse.\n" % self.CI).encode())
+        self.assertIn("expected at least 2", self.problems(self.build()))
+
+    def test_missing_required_badge_is_a_violation(self):
+        self.write("README.md", ("# Demo\n\n%s\n%s\n\nProse.\n" % (self.CI, self.LICENSE)).encode())
+        self.assertEqual(self.problems(self.build(required=["img.shields.io/badge/License", "actions/workflows/"])), "")
+        problems = self.problems(self.build(minimum=1, required=["img.shields.io/badge/Python"]))
+        self.assertIn("missing required badge: img.shields.io/badge/Python", problems)
+
+
 class SyncTest(RuleTestCase):
     def args(self, **overrides):
         values = {

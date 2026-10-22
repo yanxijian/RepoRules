@@ -6,6 +6,11 @@ All notable changes to RepoRules are documented here.
 
 ### Added
 
+- `readme_badges`: the shield block must sit directly under the title (and under
+  the language switch line when there is one), above the first paragraph. Checks a
+  minimum count and required substrings, so a CI badge and a license badge cannot
+  quietly disappear; listing every language variant keeps the four READMEs
+  identical.
 - `markdown.translations.cover`: a directory pair must be complete. Every
   `docs/zh/*.md` needs the same relative path under `docs/en/`, unless listed in
   `ignore` (a deliberate Chinese-only note). One direction only: an English-only
